@@ -1,0 +1,24 @@
+diff --git a/scripts/package/builddeb b/scripts/package/builddeb
+index fb686fd32..ab0431c6d 100755
+--- a/scripts/package/builddeb
++++ b/scripts/package/builddeb
+@@ -61,8 +61,9 @@ install_linux_image () {
+ 	*)
+ 		installed_image_path="boot/vmlinuz-${KERNELRELEASE}";;
+ 	esac
+-	cp "$(${MAKE} -s -f ${srctree}/Makefile image_name)" "${pdir}/${installed_image_path}"
+-
++	cp "$(${MAKE} -s -f ${srctree}/Makefile image_name)" "${pdir}/${installed_image_path}.unsigned"
++	sbsign --key certs/uefi.pem --cert certs/uefi.pem "${pdir}/${installed_image_path}.unsigned" --output "${pdir}/${installed_image_path}"
++	rm "${pdir}/${installed_image_path}.unsigned"
+ 	# Install the maintainer scripts
+ 	# Note: hook scripts under /etc/kernel are also executed by official Debian
+ 	# kernel packages, as well as kernel packages built using make-kpkg.
+@@ -129,6 +130,7 @@ install_kernel_headers () {
+ 
+ 	mkdir -p $pdir/lib/modules/$version/
+ 	ln -s /usr/src/linux-headers-$version $pdir/lib/modules/$version/build
++	cp ${KCONFIG_CONFIG} "${pdir}/usr/src/linux-headers-${version}"
+ }
+ 
+ install_libc_headers () {
